@@ -15,11 +15,15 @@ import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
 import Box from "@mui/material/Box";
 import Stack from "@mui/material/Stack";
+import Drawer from "@mui/material/Drawer";
+import IconButton from "@mui/material/IconButton";
+
 
 function App() {
   const navigate = useNavigate();
   const location = useLocation();
   const [session, setSession] = useState<SessionData | null>(getSession());
+  const [drawerOpen, setDrawerOpen] = useState(false);
 
   useEffect(() => {
     const handleSessionChange = () => {
@@ -69,7 +73,13 @@ function App() {
           <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
             GOBERNANZA DIGITAL
           </Typography>
-          <Stack direction="row" spacing={1} flexWrap="wrap" justifyContent="center">
+          <Stack
+            direction="row"
+            spacing={1}
+            flexWrap="wrap"
+            justifyContent="center"
+            sx={{ display: { xs: "none", sm: "flex" } }}
+          >
             {navLinks.map((link) => {
               const active = isActive(link.to);
               return (
@@ -90,6 +100,14 @@ function App() {
               );
             })}
           </Stack>
+          <IconButton
+            color="inherit"
+            onClick={() => setDrawerOpen(true)}
+            sx={{ display: { xs: "flex", sm: "none" } }}
+            aria-label="Abrir menú"
+          >
+            <span style={{ fontSize: 24 }}>☰</span>
+          </IconButton>
           {session ? (
             <Stack direction="row" spacing={1} alignItems="center">
               <Typography variant="body2">Hola, {session.username}</Typography>
@@ -104,6 +122,44 @@ function App() {
           )}
         </Toolbar>
       </AppBar>
+      <Drawer anchor="left" open={drawerOpen} onClose={() => setDrawerOpen(false)}>
+        <Box sx={{ width: 260, p: 2 }} role="presentation">
+          <Typography variant="h6" sx={{ mb: 2 }}>
+            Menú
+          </Typography>
+          <Stack spacing={1}>
+            {navLinks.map((link) => (
+              <Button
+                key={link.to}
+                component={Link}
+                to={link.to}
+                fullWidth
+                onClick={() => setDrawerOpen(false)}
+                sx={{ justifyContent: "flex-start" }}
+              >
+                {link.label}
+              </Button>
+            ))}
+          </Stack>
+          <Box mt={3}>
+            {session ? (
+              <Button variant="outlined" onClick={() => { setDrawerOpen(false); handleLogout(); }} fullWidth>
+                Logout
+              </Button>
+            ) : (
+              <Button
+                component={Link}
+                to="/login"
+                fullWidth
+                onClick={() => setDrawerOpen(false)}
+                variant="outlined"
+              >
+                Eres funcionario? Accede aqui
+              </Button>
+            )}
+          </Box>
+        </Box>
+      </Drawer>
 
       <Box
         component="main"
