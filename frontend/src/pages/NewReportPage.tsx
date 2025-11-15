@@ -14,7 +14,7 @@ import {
 } from "@mui/material";
 import type { Report } from "../types";
 
-const defaultCenter: [number, number] = [4.60971, -74.08175]; // Bogotá como fallback
+const defaultCenter: [number, number] = [4.81333, -75.69611]; // Pereira, Risaralda como fallback
 
 const markerIcon = new Icon({
   iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
@@ -54,7 +54,7 @@ export default function NewReportPage() {
   const [description, setDescription] = useState("");
   const [latitude, setLatitude] = useState<string>("");
   const [longitude, setLongitude] = useState<string>("");
-  const [files, setFiles] = useState<FileList | null>(null);
+  const [files, setFiles] = useState<File[]>([]);
 
   const [sendingCode, setSendingCode] = useState(false);
   const [codeMessage, setCodeMessage] = useState<string | null>(null);
@@ -121,7 +121,14 @@ export default function NewReportPage() {
   };
 
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
-    setFiles(e.target.files);
+    if (!e.target.files) return;
+    const selected = Array.from(e.target.files);
+    setFiles((prev) => [...prev, ...selected]);
+    e.target.value = "";
+  };
+
+  const handleRemoveFile = (index: number) => {
+    setFiles((prev) => prev.filter((_, i) => i !== index));
   };
 
   const handleSubmit = async (e: FormEvent) => {
@@ -155,11 +162,9 @@ export default function NewReportPage() {
       formData.append("latitude", latitude);
       formData.append("longitude", longitude);
 
-      if (files) {
-        Array.from(files).forEach((file) => {
-          formData.append("files", file);
-        });
-      }
+      files.forEach((file) => {
+        formData.append("files", file);
+      });
 
       const res = await fetch("/api/reports/", {
         method: "POST",
@@ -238,10 +243,28 @@ export default function NewReportPage() {
               Seleccionar archivos
               <input type="file" hidden multiple accept="image/*,video/*" onChange={handleFileChange} />
             </Button>
-            {files && files.length > 0 && (
-              <Typography variant="body2" color="text.secondary" mt={1}>
-                {files.length} archivo(s) seleccionado(s)
-              </Typography>
+            {files.length > 0 && (
+              <Stack spacing={1} mt={1}>
+                <Typography variant="body2" color="text.secondary">
+                  Archivos seleccionados:
+                </Typography>
+                {files.map((file, idx) => (
+                  <Stack
+                    key={`${file.name}-${idx}`}
+                    direction="row"
+                    alignItems="center"
+                    justifyContent="space-between"
+                    sx={{ border: "1px solid #ddd", borderRadius: 1, p: 1 }}
+                  >
+                    <Typography variant="body2" sx={{ mr: 2 }}>
+                      {file.name}
+                    </Typography>
+                    <Button size="small" color="error" onClick={() => handleRemoveFile(idx)}>
+                      Quitar
+                    </Button>
+                  </Stack>
+                ))}
+              </Stack>
             )}
           </Box>
           <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>

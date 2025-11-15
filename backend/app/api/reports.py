@@ -8,6 +8,7 @@ from math import radians, sin, cos, sqrt, atan2
 from ..db import get_db
 from .. import models, schemas
 from ..security import get_current_user
+from ..email_utils import send_status_change_email, send_comment_notification_email
 from sqlalchemy.orm import Session
 
 
@@ -269,6 +270,15 @@ async def add_comment(
         db.commit()
         db.refresh(comment)
 
+    try:
+        send_comment_notification_email(
+            report=report,
+            comment=comment,
+            to_email=report.citizen_email,
+        )
+    except Exception:
+        pass
+
     return comment
 
 
@@ -341,5 +351,15 @@ def update_report_status(
 
     db.commit()
     db.refresh(report)
+
+    try:
+        send_status_change_email(
+            report=report,
+            old_status=old_status.value,
+            new_status=new_status.value,
+            to_email=report.citizen_email,
+        )
+    except Exception:
+        pass
 
     return report

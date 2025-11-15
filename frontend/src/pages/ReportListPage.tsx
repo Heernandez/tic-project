@@ -80,7 +80,28 @@ export default function ReportListPage() {
   }
 
   if (reports.length === 0) {
-    return <Typography>No hay reportes aún. Crea el primero desde “Nuevo reporte”.</Typography>;
+    return (
+      <Box
+        display="flex"
+        flexDirection="column"
+        alignItems="center"
+        justifyContent="center"
+        textAlign="center"
+        mt={4}
+      >
+        <Typography variant="h6" gutterBottom>
+          No hay reportes aún
+        </Typography>
+        <Typography variant="body2" color="text.secondary" mb={2}>
+          Cuando existan registros los verás aquí. Mientras tanto, puedes crear el primero desde “Nuevo reporte”.
+        </Typography>
+        <img
+          src="/sin_registros.png"
+          alt="Sin reportes"
+          style={{ maxWidth: 260, width: "100%", opacity: 0.85 }}
+        />
+      </Box>
+    );
   }
 
   return (
@@ -88,7 +109,7 @@ export default function ReportListPage() {
       <Typography variant="h5" component="h2" gutterBottom>
         Listado de reportes
       </Typography>
-      <Grid container spacing={2}>
+      <Grid container spacing={2} justifyContent="center">
         {reports.map((r) => (
           <Grid item xs={12} md={6} key={r.public_id}>
             <Card>

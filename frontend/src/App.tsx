@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Routes, Route, Link, useNavigate } from "react-router-dom";
+import { Routes, Route, Link, useNavigate, useLocation, Navigate } from "react-router-dom";
 import ReportListPage from "./pages/ReportListPage";
 import NewReportPage from "./pages/NewReportPage";
 import ReportDetailPage from "./pages/ReportDetailPage";
@@ -18,6 +18,7 @@ import Stack from "@mui/material/Stack";
 
 function App() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [session, setSession] = useState<SessionData | null>(getSession());
 
   useEffect(() => {
@@ -38,6 +39,21 @@ function App() {
     navigate("/");
   };
 
+  const navLinks = [
+    { label: "Cómo funciona", to: "/como-funciona" },
+    { label: "Listado", to: "/reportes" },
+    { label: "Nuevo reporte", to: "/reportes/nuevo" },
+    { label: "Cerca de mí", to: "/reportes/cercanos" },
+    { label: "Noticias", to: "/noticias" },
+  ];
+
+  const isActive = (path: string) => {
+    if (path === "/como-funciona") {
+      return location.pathname === "/" || location.pathname === path;
+    }
+    return location.pathname === path;
+  };
+
   return (
     <Box
       sx={{
@@ -54,21 +70,25 @@ function App() {
             Reportes Ciudadanos
           </Typography>
           <Stack direction="row" spacing={1} flexWrap="wrap" justifyContent="center">
-            <Button color="inherit" component={Link} to="/">
-              Listado
-            </Button>
-            <Button color="inherit" component={Link} to="/reportes/nuevo">
-              Nuevo reporte
-            </Button>
-            <Button color="inherit" component={Link} to="/reportes/cercanos">
-              Cerca de mí
-            </Button>
-            <Button color="inherit" component={Link} to="/como-funciona">
-              Cómo funciona
-            </Button>
-            <Button color="inherit" component={Link} to="/noticias">
-              Noticias
-            </Button>
+            {navLinks.map((link) => {
+              const active = isActive(link.to);
+              return (
+                <Button
+                  key={link.to}
+                  color="inherit"
+                  component={Link}
+                  to={link.to}
+                  sx={{
+                    borderBottom: active ? "2px solid #fff" : "2px solid transparent",
+                    borderRadius: 0,
+                    px: 1.5,
+                    color: "#fff",
+                  }}
+                >
+                  {link.label}
+                </Button>
+              );
+            })}
           </Stack>
           {session ? (
             <Stack direction="row" spacing={1} alignItems="center">
@@ -85,9 +105,20 @@ function App() {
         </Toolbar>
       </AppBar>
 
-      <Box component="main" sx={{ maxWidth: 900, mx: "auto", p: 2, width: "100%", flexGrow: 1 }}>
+      <Box
+        component="main"
+        sx={{
+          maxWidth: 900,
+          mx: "auto",
+          px: 0,
+          py: 0,
+          width: "100%",
+          flexGrow: 1,
+        }}
+      >
         <Routes>
-          <Route path="/" element={<ReportListPage />} />
+          <Route path="/" element={<Navigate to="/como-funciona" replace />} />
+          <Route path="/reportes" element={<ReportListPage />} />
           <Route path="/reportes/nuevo" element={<NewReportPage />} />
           <Route path="/reportes/:publicId" element={<ReportDetailPage />} />
           <Route path="/reportes/actualizacion/:publicId" element={<NewComent />} />

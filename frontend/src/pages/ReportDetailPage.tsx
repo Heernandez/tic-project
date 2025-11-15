@@ -1,6 +1,15 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
+import { MapContainer, Marker, TileLayer } from "react-leaflet";
+import { Icon } from "leaflet";
 import type { Report } from "../types";
+
+const markerIcon = new Icon({
+  iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
+  shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+});
 
 export default function ReportDetailPage() {
   const { publicId } = useParams<{ publicId: string }>();
@@ -40,22 +49,36 @@ export default function ReportDetailPage() {
     <div>
       <h2>Reporte #{report.id}</h2>
       <p>
-        <strong>Ciudadano:</strong> {report.citizen_email || "N/D"}
-      </p>
-      <p>
         <strong>Estado: </strong>{report.status}
       </p>
 
       <p>
         <strong>Descripción:</strong> {report.description}
       </p>
-      <p>
-        <strong>Ubicación:</strong> Lat {report.latitude} / Lng{" "}
-        {report.longitude}
-      </p>
+      <section style={{ marginTop: "1rem" }}>
+        <h3>Ubicación</h3>
+        <div style={{ height: 320, borderRadius: 8, overflow: "hidden" }}>
+          <MapContainer
+            center={[report.latitude, report.longitude]}
+            zoom={15}
+            style={{ height: "100%", width: "100%" }}
+            scrollWheelZoom={false}
+            doubleClickZoom={false}
+            dragging={false}
+            boxZoom={false}
+            keyboard={false}
+          >
+            <TileLayer
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            />
+            <Marker position={[report.latitude, report.longitude]} icon={markerIcon} />
+          </MapContainer>
+        </div>
+      </section>
 
       <section style={{ marginTop: "1rem" }}>
-        <h3>Media del reporte</h3>
+        <h3>Archivos adjuntos</h3>
         {report.media.length === 0 && <p>No hay imágenes ni videos.</p>}
         <div style={{ display: "flex", flexWrap: "wrap", gap: "0.75rem" }}>
           {report.media.map((m) => {
@@ -86,7 +109,7 @@ export default function ReportDetailPage() {
         <h3>Comentarios</h3>
 
         {report.comments.length === 0 && (
-          <p>No hay comentarios aún. Agrega el primero.</p>
+          <p>No hay comentarios aún.</p>
         )}
 
         <ul style={{ listStyle: "none", padding: 0 }}>
