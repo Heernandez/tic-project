@@ -191,6 +191,10 @@ export default function NewReportPage() {
       <Typography variant="h5" component="h2" gutterBottom>
         Nuevo reporte
       </Typography>
+      <Alert severity="info" sx={{ mb: 2 }}>
+        Antes de enviar un nuevo reporte, revisa la pestaña "Cerca de mí" para confirmar si alguien ya reportó el
+        mismo punto. Así evitamos duplicados y agilizamos la atención.
+      </Alert>
       <Paper component="form" onSubmit={handleSubmit} sx={{ p: 4 }}>
         <Stack spacing={3}>
           <TextField

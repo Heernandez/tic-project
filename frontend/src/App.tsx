@@ -41,8 +41,8 @@ function App() {
 
   const navLinks = [
     { label: "Cómo funciona", to: "/como-funciona" },
-    { label: "Listado", to: "/reportes" },
     { label: "Nuevo reporte", to: "/reportes/nuevo" },
+    { label: "Listado", to: "/reportes" },
     { label: "Cerca de mí", to: "/reportes/cercanos" },
     { label: "Noticias", to: "/noticias" },
   ];
@@ -67,7 +67,7 @@ function App() {
       <AppBar position="static" color="primary" sx={{ flexShrink: 0 }} elevation={0}>
         <Toolbar sx={{ flexWrap: "wrap", gap: 2 }}>
           <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-            Reportes Ciudadanos
+            GOBERNANZA DIGITAL
           </Typography>
           <Stack direction="row" spacing={1} flexWrap="wrap" justifyContent="center">
             {navLinks.map((link) => {
