@@ -128,6 +128,30 @@ function App() {
           <Route path="/login" element={<LoginPage />} />
         </Routes>
       </Box>
+      <Box
+        component="footer"
+        sx={{
+          mt: 4,
+          py: 3,
+          px: 2,
+          backgroundColor: "#102a43",
+          color: "#fff",
+        }}
+      >
+        <Stack
+          direction={{ xs: "column", sm: "row" }}
+          spacing={2}
+          alignItems="center"
+          justifyContent="center"
+          textAlign="center"
+        >
+          <Box component="img" src="/UTP.png" alt="Logo UTP" sx={{ height: 48 }} />
+          <Typography variant="body2">
+            Proyecto de Grado TIC: "DISEÑO DE PLATAFORMA DE GOBIERNO DIGITAL PARA REPORTES Y COMUNICACIÓN CIUDADANA EN
+            PEREIRA" — Luis Hernández — 2025 ©
+          </Typography>
+        </Stack>
+      </Box>
     </Box>
   );
 }
