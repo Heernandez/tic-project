@@ -6,7 +6,15 @@ import ReportDetailPage from "./pages/ReportDetailPage";
 import NewComent from "./pages/NewComent";
 import LoginPage from "./pages/LoginPage";
 import NearbyReportsPage from "./pages/NearbyReportsPage";
+import NewsPage from "./pages/NewsPage";
+import HowItWorksPage from "./pages/HowItWorksPage";
 import { clearSession, getSession, type SessionData } from "./auth";
+import AppBar from "@mui/material/AppBar";
+import Toolbar from "@mui/material/Toolbar";
+import Typography from "@mui/material/Typography";
+import Button from "@mui/material/Button";
+import Box from "@mui/material/Box";
+import Stack from "@mui/material/Stack";
 
 function App() {
   const navigate = useNavigate();
@@ -31,46 +39,65 @@ function App() {
   };
 
   return (
-    <div style={{ fontFamily: "system-ui, sans-serif" }}>
-      <header
-        style={{
-          padding: "1rem",
-          borderBottom: "1px solid #ddd",
-          marginBottom: "1rem",
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-        }}
-      >
-        <h1 style={{ margin: 0, fontSize: "1.5rem" }}>Reportes Ciudadanos</h1>
-        <nav style={{ display: "flex", gap: "1rem" }}>
-          <Link to="/">Listado</Link>
-          <Link to="/reportes/nuevo">Nuevo reporte</Link>
-          <Link to="/reportes/cercanos">Cerca de mí</Link>
+    <Box
+      sx={{
+        fontFamily: "system-ui, sans-serif",
+        minHeight: "100vh",
+        display: "flex",
+        flexDirection: "column",
+        backgroundColor: "#f5f5f5",
+      }}
+    >
+      <AppBar position="static" color="primary" sx={{ flexShrink: 0 }} elevation={0}>
+        <Toolbar sx={{ flexWrap: "wrap", gap: 2 }}>
+          <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+            Reportes Ciudadanos
+          </Typography>
+          <Stack direction="row" spacing={1} flexWrap="wrap" justifyContent="center">
+            <Button color="inherit" component={Link} to="/">
+              Listado
+            </Button>
+            <Button color="inherit" component={Link} to="/reportes/nuevo">
+              Nuevo reporte
+            </Button>
+            <Button color="inherit" component={Link} to="/reportes/cercanos">
+              Cerca de mí
+            </Button>
+            <Button color="inherit" component={Link} to="/como-funciona">
+              Cómo funciona
+            </Button>
+            <Button color="inherit" component={Link} to="/noticias">
+              Noticias
+            </Button>
+          </Stack>
           {session ? (
-            <>
-              <span style={{ fontWeight: 600 }}>Hola, {session.username}</span>
-              <button onClick={handleLogout}>Logout</button>
-            </>
+            <Stack direction="row" spacing={1} alignItems="center">
+              <Typography variant="body2">Hola, {session.username}</Typography>
+              <Button variant="outlined" color="inherit" size="small" onClick={handleLogout}>
+                Logout
+              </Button>
+            </Stack>
           ) : (
-            <Link to="/login">Eres funcionario? Accede aqui</Link>
+            <Button color="inherit" component={Link} to="/login">
+              Eres funcionario? Accede aqui
+            </Button>
           )}
+        </Toolbar>
+      </AppBar>
 
-        </nav>
-      </header>
-
-      <main style={{ maxWidth: 900, margin: "0 auto", padding: "0 1rem 2rem" }}>
+      <Box component="main" sx={{ maxWidth: 900, mx: "auto", p: 2, width: "100%", flexGrow: 1 }}>
         <Routes>
           <Route path="/" element={<ReportListPage />} />
           <Route path="/reportes/nuevo" element={<NewReportPage />} />
           <Route path="/reportes/:publicId" element={<ReportDetailPage />} />
           <Route path="/reportes/actualizacion/:publicId" element={<NewComent />} />
           <Route path="/reportes/cercanos" element={<NearbyReportsPage />} />
-          <Route path="/login" element={<LoginPage />} />    {/* 👈 ruta login */}
-
+          <Route path="/como-funciona" element={<HowItWorksPage />} />
+          <Route path="/noticias" element={<NewsPage />} />
+          <Route path="/login" element={<LoginPage />} />
         </Routes>
-      </main>
-    </div>
+      </Box>
+    </Box>
   );
 }
 

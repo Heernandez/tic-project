@@ -1,4 +1,4 @@
-import { ChangeEvent, FormEvent, useState } from "react";
+import { ChangeEvent, FormEvent, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Alert,
@@ -28,6 +28,13 @@ export default function NewReportPage() {
 
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const geoTimeout = setTimeout(() => {
+      handleUseCurrentLocation();
+    }, 500);
+    return () => clearTimeout(geoTimeout);
+  }, []);
 
   const handleUseCurrentLocation = () => {
     if (!navigator.geolocation) {
