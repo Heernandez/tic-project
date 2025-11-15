@@ -1,6 +1,6 @@
 # backend/app/schemas.py
 from datetime import datetime
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr,Field
 from typing import List, Optional
 from .models import ReportStatus
 
@@ -38,7 +38,7 @@ class ReportCommentOut(BaseModel):
     content: str
     created_at: datetime
     # 👇 nueva lista de evidencias del comentario
-    media: List[ReportCommentMediaOut] = []
+    media: List[ReportCommentMediaOut] = Field(default_factory=list)
     class Config:
         orm_mode = True
 
@@ -61,8 +61,8 @@ class ReportOut(BaseModel):
     created_at: datetime
     updated_at: datetime
 
-    media: List[ReportMediaOut] = []
-    comments: List[ReportCommentOut] = []
+    media: List[ReportMediaOut] = Field(default_factory=list)
+    comments: List[ReportCommentOut] = Field(default_factory=list)
 
     class Config:
         orm_mode = True
@@ -73,3 +73,13 @@ class ReportStatusUpdate(BaseModel):
 
 class RequestCodeInput(BaseModel):
     email: EmailStr
+
+class UserLoginInput(BaseModel):
+    username: str
+    password: str
+
+
+class UserLoginResponse(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+    username: str

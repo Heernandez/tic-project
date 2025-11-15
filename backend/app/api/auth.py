@@ -8,7 +8,11 @@ from sqlalchemy.orm import Session
 from ..db import get_db
 from .. import models, schemas
 from ..email_utils import send_otp_email
-
+from ..security import (
+    verify_password,
+    create_session_token,
+    SESSION_TTL_MINUTES,
+)
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 
@@ -50,3 +54,42 @@ def request_code(payload: schemas.RequestCodeInput, db: Session = Depends(get_db
         )
 
     return {"detail": "Código de verificación enviado"}
+
+
+
+@router.post(
+    "/login",
+    response_model=schemas.UserLoginResponse,
+)
+def login(payload: schemas.UserLoginInput, db: Session = Depends(get_db)):
+    """
+    Login de usuario del sistema.
+    Recibe username y password, valida el hash,
+    genera un token de sesión (idSesion) y lo retorna.
+    """
+    username = payload.username.strip()
+    user = (
+        db.query(models.SystemUser)
+        .filter(models.SystemUser.username == username)
+        .first()
+    )
+    if not user or not verify_password(payload.password, user.password_hash):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Credenciales inválidas",
+        )
+
+    # Crear nueva sesión
+    token = create_session_token()
+    now = datetime.utcnow()
+    expires_at = now + timedelta(minutes=SESSION_TTL_MINUTES)
+
+    user.session_token = token
+    user.session_expires_at = expires_at
+    user.last_login_at = now
+    user.updated_at = now
+
+    db.commit()
+    db.refresh(user)
+
+    return schemas.UserLoginResponse(access_token=token,username=user.username)

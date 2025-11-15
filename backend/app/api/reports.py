@@ -4,6 +4,11 @@ from pathlib import Path
 from typing import List, Optional
 from uuid import uuid4
 from datetime import datetime
+from ..db import get_db
+from .. import models, schemas
+from ..security import get_current_user
+from sqlalchemy.orm import Session
+
 
 from fastapi import (
     APIRouter,
@@ -156,9 +161,9 @@ def get_report(public_id: str, db: Session = Depends(get_db)):
 async def add_comment(
     public_id: str,
     content: str = Form(...),
-    author: Optional[str] = Form(None),
     evidences: Optional[List[UploadFile]] = File(default=None),
     db: Session = Depends(get_db),
+    current_user: models.SystemUser = Depends(get_current_user),
 ):
     """
     Agrega un comentario a un reporte.
@@ -174,13 +179,17 @@ async def add_comment(
     if not report:
         raise HTTPException(status_code=404, detail="Reporte no encontrado")
 
+    author_value = current_user.username
+
     # 1. Crear comentario
     comment = models.ReportComment(
         report_id=report.id,
-        author=author,
+        author=author_value,
         content=content,
     )
     db.add(comment)
+    # actualizar updated_at del reporte
+    report.updated_at = datetime.utcnow()
     db.commit()
     db.refresh(comment)
 
@@ -210,8 +219,7 @@ async def add_comment(
             )
             db.add(comment_media)
 
-        # actualizar updated_at del reporte
-        report.updated_at = datetime.utcnow()
+        
         db.commit()
         db.refresh(comment)
 
@@ -241,6 +249,8 @@ def update_report_status(
     public_id: str,
     status_in: schemas.ReportStatusUpdate,
     db: Session = Depends(get_db),
+    current_user: models.SystemUser = Depends(get_current_user),
+
 ):
     report = (
         db.query(models.Report)
@@ -250,9 +260,27 @@ def update_report_status(
     if not report:
         raise HTTPException(status_code=404, detail="Reporte no encontrado")
 
-    report.status = status_in.status
+    old_status = report.status
+    new_status = status_in.status
+
+    if old_status == new_status:
+        # Si quisieras, podrías simplemente retornar sin crear nada
+        return report
+
+    # Actualizar estado y updated_at
+    report.status = new_status
     report.updated_at = datetime.utcnow()
+    db.add(report)
+
+    # 👇 Crear comentario automático con el usuario que cambió el estado
+    change_comment = models.ReportComment(
+        report_id=report.id,
+        author=current_user.username,
+        content=f"Estado cambiado de '{old_status.value}' a '{new_status.value}'",
+    )
+    db.add(change_comment)
 
     db.commit()
     db.refresh(report)
+
     return report
