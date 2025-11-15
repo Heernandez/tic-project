@@ -212,7 +212,7 @@ export default function ReportDetailPage() {
 
       <Paper sx={{ p: 3, mb: 3 }}>
         <Typography variant="h6" gutterBottom>
-          Media del reporte
+          Adjuntos del reporte
         </Typography>
         {report.media.length === 0 ? (
           <Typography>No hay imágenes ni videos.</Typography>

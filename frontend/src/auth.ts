@@ -13,11 +13,17 @@ export interface SessionData {
 export function saveSession(login: LoginResponse) {
   localStorage.setItem(TOKEN_KEY, login.access_token);
   localStorage.setItem(USERNAME_KEY, login.username);
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new Event("session-changed"));
+  }
 }
 
 export function clearSession() {
   localStorage.removeItem(TOKEN_KEY);
   localStorage.removeItem(USERNAME_KEY);
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new Event("session-changed"));
+  }
 }
 
 export function getSession(): SessionData | null {

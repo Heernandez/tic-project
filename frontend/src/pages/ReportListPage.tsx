@@ -14,6 +14,7 @@ import {
   Typography,
 } from "@mui/material";
 import type { Report, ReportStatus } from "../types";
+import { getSession } from "../auth";
 
 const statusLabels: Record<ReportStatus, string> = {
   nuevo: "Nuevo",
@@ -33,12 +34,13 @@ export default function ReportListPage() {
   const [reports, setReports] = useState<Report[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [hasSession, setHasSession] = useState<boolean>(!!getSession());
 
   useEffect(() => {
     async function fetchReports() {
       try {
         setLoading(true);
-        const res = await fetch("/api/reports");
+        const res = await fetch("/api/reports/");
         if (!res.ok) {
           throw new Error("Error al cargar reportes");
         }
@@ -51,6 +53,18 @@ export default function ReportListPage() {
       }
     }
     fetchReports();
+  }, []);
+
+  useEffect(() => {
+    const handleSessionChange = () => {
+      setHasSession(!!getSession());
+    };
+    window.addEventListener("session-changed", handleSessionChange);
+    window.addEventListener("storage", handleSessionChange);
+    return () => {
+      window.removeEventListener("session-changed", handleSessionChange);
+      window.removeEventListener("storage", handleSessionChange);
+    };
   }, []);
 
   if (loading) {
@@ -66,7 +80,28 @@ export default function ReportListPage() {
   }
 
   if (reports.length === 0) {
-    return <Typography>No hay reportes aún. Crea el primero desde “Nuevo reporte”.</Typography>;
+    return (
+      <Box
+        display="flex"
+        flexDirection="column"
+        alignItems="center"
+        justifyContent="center"
+        textAlign="center"
+        mt={4}
+      >
+        <Typography variant="h6" gutterBottom>
+          No hay reportes aún
+        </Typography>
+        <Typography variant="body2" color="text.secondary" mb={2}>
+          Cuando existan registros los verás aquí. Mientras tanto, puedes crear el primero desde “Nuevo reporte”.
+        </Typography>
+        <img
+          src="/sin_registros.png"
+          alt="Sin reportes"
+          style={{ maxWidth: 260, width: "100%", opacity: 0.85 }}
+        />
+      </Box>
+    );
   }
 
   return (
@@ -74,7 +109,7 @@ export default function ReportListPage() {
       <Typography variant="h5" component="h2" gutterBottom>
         Listado de reportes
       </Typography>
-      <Grid container spacing={2}>
+      <Grid container spacing={2} justifyContent="center">
         {reports.map((r) => (
           <Grid item xs={12} md={6} key={r.public_id}>
             <Card>
@@ -96,14 +131,16 @@ export default function ReportListPage() {
                 <Button component={RouterLink} to={`/reportes/${r.public_id}`}>
                   Ver detalle
                 </Button>
-                <Button
-                  component={RouterLink}
-                  to={`/reportes/actualizacion/${r.public_id}`}
-                  variant="contained"
-                  size="small"
-                >
-                  Agregar comentario
-                </Button>
+                {hasSession && (
+                  <Button
+                    component={RouterLink}
+                    to={`/reportes/actualizacion/${r.public_id}`}
+                    variant="contained"
+                    size="small"
+                  >
+                    Agregar comentario
+                  </Button>
+                )}
               </CardActions>
             </Card>
           </Grid>

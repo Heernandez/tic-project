@@ -92,4 +92,4 @@ def login(payload: schemas.UserLoginInput, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(user)
 
-    return schemas.UserLoginResponse(access_token=token,username=user.username)
+    return schemas.UserLoginResponse(access_token=token,username=user.name)
