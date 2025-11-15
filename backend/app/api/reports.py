@@ -1,9 +1,10 @@
 # backend/app/api/reports.py
 import os
 from pathlib import Path
-from typing import List, Optional
+from typing import List, Optional, Tuple
 from uuid import uuid4
 from datetime import datetime
+from math import radians, sin, cos, sqrt, atan2
 from ..db import get_db
 from .. import models, schemas
 from ..security import get_current_user
@@ -17,6 +18,7 @@ from fastapi import (
     UploadFile,
     File,
     Form,
+    Query,
     status,
 )
 from sqlalchemy.orm import Session
@@ -34,6 +36,22 @@ MEDIA_DIR.mkdir(parents=True, exist_ok=True)
 # 👇 carpeta para evidencias de operarios
 OPERATOR_MEDIA_DIR = BASE_DIR / "media_operator"
 OPERATOR_MEDIA_DIR.mkdir(parents=True, exist_ok=True)
+
+def _haversine_distance_km(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
+    """
+    Calcula distancia entre dos coordenadas usando la fórmula de Haversine.
+    Retorna la distancia en kilómetros.
+    """
+    R = 6371.0
+    d_lat = radians(lat2 - lat1)
+    d_lon = radians(lon2 - lon1)
+
+    a = (
+        sin(d_lat / 2) ** 2
+        + cos(radians(lat1)) * cos(radians(lat2)) * sin(d_lon / 2) ** 2
+    )
+    c = 2 * atan2(sqrt(a), sqrt(1 - a))
+    return R * c
 
 def validate_email_otp(db: Session, email: str, otp_code: str) -> None:
     """
@@ -138,6 +156,35 @@ async def create_report(
 
 
 
+
+@router.get("/nearby", response_model=List[schemas.ReportOut])
+def list_nearby_reports(
+    lat: float = Query(..., description="Latitud actual del usuario"),
+    lng: float = Query(..., description="Longitud actual del usuario"),
+    radius_km: float = Query(
+        1.0,
+        gt=0,
+        le=50,
+        description="Radio de búsqueda en kilómetros",
+    ),
+    db: Session = Depends(get_db),
+):
+    """
+    Retorna los reportes que están dentro del radio especificado desde la ubicación del usuario.
+    """
+    print("nearby reports:", lat, lng, radius_km)
+    reports = db.query(models.Report).all()
+    nearby: List[Tuple[float, models.Report]] = []
+
+    for report in reports:
+        distance = _haversine_distance_km(lat, lng, report.latitude, report.longitude)
+        if distance <= radius_km:
+            nearby.append((distance, report))
+
+    nearby.sort(key=lambda item: item[0])
+    return [report for _, report in nearby]
+
+
 @router.get("/{public_id}", response_model=schemas.ReportOut)
 def get_report(public_id: str, db: Session = Depends(get_db)):
     """
@@ -152,7 +199,6 @@ def get_report(public_id: str, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Reporte no encontrado")
 
     return report
-
 @router.post(
     "/{public_id}/comments",
     response_model=schemas.ReportCommentOut,

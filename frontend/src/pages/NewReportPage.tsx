@@ -117,7 +117,7 @@ export default function NewReportPage() {
         });
       }
 
-      const res = await fetch("/api/reports", {
+      const res = await fetch("/api/reports/", {
         method: "POST",
         body: formData,
       });

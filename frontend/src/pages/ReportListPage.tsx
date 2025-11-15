@@ -38,7 +38,7 @@ export default function ReportListPage() {
     async function fetchReports() {
       try {
         setLoading(true);
-        const res = await fetch("/api/reports");
+        const res = await fetch("/api/reports/");
         if (!res.ok) {
           throw new Error("Error al cargar reportes");
         }

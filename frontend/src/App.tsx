@@ -4,6 +4,7 @@ import NewReportPage from "./pages/NewReportPage";
 import ReportDetailPage from "./pages/ReportDetailPage";
 import NewComent from "./pages/NewComent";
 import LoginPage from "./pages/LoginPage";
+import NearbyReportsPage from "./pages/NearbyReportsPage";
 
 function App() {
   return (
@@ -22,6 +23,7 @@ function App() {
         <nav style={{ display: "flex", gap: "1rem" }}>
           <Link to="/">Listado</Link>
           <Link to="/reportes/nuevo">Nuevo reporte</Link>
+          <Link to="/reportes/cercanos">Cerca de mí</Link>
           <Link to="/login">Login</Link>       {/* 👈 enlace simple al login */}
 
         </nav>
@@ -33,6 +35,7 @@ function App() {
           <Route path="/reportes/nuevo" element={<NewReportPage />} />
           <Route path="/reportes/:publicId" element={<ReportDetailPage />} />
           <Route path="/reportes/actualizacion/:publicId" element={<NewComent />} />
+          <Route path="/reportes/cercanos" element={<NearbyReportsPage />} />
           <Route path="/login" element={<LoginPage />} />    {/* 👈 ruta login */}
 
         </Routes>
@@ -42,4 +45,3 @@ function App() {
 }
 
 export default App;
-
