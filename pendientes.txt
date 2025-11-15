@@ -1,0 +1,18 @@
+ubicacion automatica
+boton solo para fallo
+
+mejorar la interfaz visual
+
+mejorar los mensajes de cambio de 
+
+cuando veo algo ya reportado,
+marcar con un contador para decir
+que yo tambien lo identifiqué
+
+
+pantalla explicativa al usuario
+
+
+ruta de los anuncios
+
+crud para crear anuncios con temporalidad de visibilidades

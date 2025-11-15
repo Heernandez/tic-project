@@ -317,12 +317,25 @@ def update_report_status(
     report.status = new_status
     report.updated_at = datetime.utcnow()
     db.add(report)
-
+    mensaje = ""
     # 👇 Crear comentario automático con el usuario que cambió el estado
+    if(old_status == models.ReportStatus.NUEVO and new_status == models.ReportStatus.EN_PROGRESO):
+        mensaje = "Se ha iniciado el procesamiento del reporte."
+    elif(old_status == models.ReportStatus.EN_PROGRESO and new_status == models.ReportStatus.REASIGNADO):
+        mensaje = "El reporte ha sido reasignado a otro operario."
+    elif(new_status == models.ReportStatus.FINALIZADO):
+        mensaje = "El reporte ha sido finalizado." 
+    transicion = ""
+    if(old_status == models.ReportStatus.NUEVO and new_status == models.ReportStatus.EN_PROGRESO):
+        transicion = "de 'Nuevo' a 'En progreso'"
+    elif(old_status == models.ReportStatus.EN_PROGRESO and new_status == models.ReportStatus.REASIGNADO):
+        transicion = "de 'En progreso' a 'Reasignado'"
+    elif(new_status == models.ReportStatus.FINALIZADO): 
+        transicion = "a 'Finalizado'"
     change_comment = models.ReportComment(
         report_id=report.id,
         author=current_user.username,
-        content=f"Estado cambiado de '{old_status.value}' a '{new_status.value}'",
+        content=f"{mensaje}"#\n{transicion}",
     )
     db.add(change_comment)
 

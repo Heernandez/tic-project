@@ -14,6 +14,7 @@ import {
   Typography,
 } from "@mui/material";
 import type { Report, ReportStatus } from "../types";
+import { getSession } from "../auth";
 
 const statusLabels: Record<ReportStatus, string> = {
   nuevo: "Nuevo",
@@ -33,6 +34,7 @@ export default function ReportListPage() {
   const [reports, setReports] = useState<Report[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [hasSession, setHasSession] = useState<boolean>(!!getSession());
 
   useEffect(() => {
     async function fetchReports() {
@@ -51,6 +53,18 @@ export default function ReportListPage() {
       }
     }
     fetchReports();
+  }, []);
+
+  useEffect(() => {
+    const handleSessionChange = () => {
+      setHasSession(!!getSession());
+    };
+    window.addEventListener("session-changed", handleSessionChange);
+    window.addEventListener("storage", handleSessionChange);
+    return () => {
+      window.removeEventListener("session-changed", handleSessionChange);
+      window.removeEventListener("storage", handleSessionChange);
+    };
   }, []);
 
   if (loading) {
@@ -96,14 +110,16 @@ export default function ReportListPage() {
                 <Button component={RouterLink} to={`/reportes/${r.public_id}`}>
                   Ver detalle
                 </Button>
-                <Button
-                  component={RouterLink}
-                  to={`/reportes/actualizacion/${r.public_id}`}
-                  variant="contained"
-                  size="small"
-                >
-                  Agregar comentario
-                </Button>
+                {hasSession && (
+                  <Button
+                    component={RouterLink}
+                    to={`/reportes/actualizacion/${r.public_id}`}
+                    variant="contained"
+                    size="small"
+                  >
+                    Agregar comentario
+                  </Button>
+                )}
               </CardActions>
             </Card>
           </Grid>

@@ -1,12 +1,35 @@
-import { Routes, Route, Link } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Routes, Route, Link, useNavigate } from "react-router-dom";
 import ReportListPage from "./pages/ReportListPage";
 import NewReportPage from "./pages/NewReportPage";
 import ReportDetailPage from "./pages/ReportDetailPage";
 import NewComent from "./pages/NewComent";
 import LoginPage from "./pages/LoginPage";
 import NearbyReportsPage from "./pages/NearbyReportsPage";
+import { clearSession, getSession, type SessionData } from "./auth";
 
 function App() {
+  const navigate = useNavigate();
+  const [session, setSession] = useState<SessionData | null>(getSession());
+
+  useEffect(() => {
+    const handleSessionChange = () => {
+      setSession(getSession());
+    };
+    window.addEventListener("session-changed", handleSessionChange);
+    window.addEventListener("storage", handleSessionChange);
+    return () => {
+      window.removeEventListener("session-changed", handleSessionChange);
+      window.removeEventListener("storage", handleSessionChange);
+    };
+  }, []);
+
+  const handleLogout = () => {
+    clearSession();
+    setSession(null);
+    navigate("/");
+  };
+
   return (
     <div style={{ fontFamily: "system-ui, sans-serif" }}>
       <header
@@ -24,7 +47,14 @@ function App() {
           <Link to="/">Listado</Link>
           <Link to="/reportes/nuevo">Nuevo reporte</Link>
           <Link to="/reportes/cercanos">Cerca de mí</Link>
-          <Link to="/login">Login</Link>       {/* 👈 enlace simple al login */}
+          {session ? (
+            <>
+              <span style={{ fontWeight: 600 }}>Hola, {session.username}</span>
+              <button onClick={handleLogout}>Logout</button>
+            </>
+          ) : (
+            <Link to="/login">Eres funcionario? Accede aqui</Link>
+          )}
 
         </nav>
       </header>
