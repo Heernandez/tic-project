@@ -1,17 +1,50 @@
 import { ChangeEvent, FormEvent, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { MapContainer, TileLayer, Marker, useMapEvents, useMap } from "react-leaflet";
+import { Icon } from "leaflet";
 import {
   Alert,
   Box,
   Button,
   Container,
-  Grid,
   Paper,
   Stack,
   TextField,
   Typography,
 } from "@mui/material";
 import type { Report } from "../types";
+
+const defaultCenter: [number, number] = [4.60971, -74.08175]; // Bogotá como fallback
+
+const markerIcon = new Icon({
+  iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
+  shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+});
+
+function MapClickHandler({
+  onSelect,
+}: {
+  onSelect: (lat: number, lng: number) => void;
+}) {
+  useMapEvents({
+    click(e) {
+      onSelect(e.latlng.lat, e.latlng.lng);
+    },
+  });
+  return null;
+}
+
+function MapCenterUpdater({ lat, lng }: { lat?: number; lng?: number }) {
+  const map = useMap();
+  useEffect(() => {
+    if (typeof lat === "number" && typeof lng === "number") {
+      map.setView([lat, lng], map.getZoom());
+    }
+  }, [lat, lng, map]);
+  return null;
+}
 
 export default function NewReportPage() {
   const navigate = useNavigate();
@@ -45,9 +78,13 @@ export default function NewReportPage() {
       (pos) => {
         setLatitude(pos.coords.latitude.toString());
         setLongitude(pos.coords.longitude.toString());
+        setError(null);
       },
-      () => {
-        setError("No fue posible obtener la ubicación.");
+      (err) => {
+        setError(
+          `No fue posible obtener la ubicación automáticamente (código ${err.code} - ${err.message}). ` +
+            "Seleccionála en el mapa o ingrésala manualmente."
+        );
       }
     );
   };
@@ -151,6 +188,62 @@ export default function NewReportPage() {
       </Typography>
       <Paper component="form" onSubmit={handleSubmit} sx={{ p: 4 }}>
         <Stack spacing={3}>
+          <TextField
+            label="Descripción"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            multiline
+            minRows={4}
+            required
+            fullWidth
+          />
+          <Box sx={{ height: 320, borderRadius: 2, overflow: "hidden" }}>
+            <MapContainer
+              center={
+                latitude && longitude
+                  ? [parseFloat(latitude), parseFloat(longitude)]
+                  : defaultCenter
+              }
+              zoom={14}
+              style={{ height: "100%", width: "100%" }}
+            >
+              <TileLayer
+                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              />
+              {(latitude && longitude) && (
+                <Marker
+                  position={[parseFloat(latitude), parseFloat(longitude)]}
+                  icon={markerIcon}
+                />
+              )}
+              <MapCenterUpdater
+                lat={latitude ? parseFloat(latitude) : undefined}
+                lng={longitude ? parseFloat(longitude) : undefined}
+              />
+              <MapClickHandler
+                onSelect={(lat, lng) => {
+                  setLatitude(lat.toString());
+                  setLongitude(lng.toString());
+                  setError(null);
+                }}
+              />
+            </MapContainer>
+          </Box>
+          <Button type="button" variant="text" onClick={handleUseCurrentLocation}>
+            Usar mi ubicación actual
+          </Button>
+          <Box>
+            <Button variant="outlined" component="label">
+              Seleccionar archivos
+              <input type="file" hidden multiple accept="image/*,video/*" onChange={handleFileChange} />
+            </Button>
+            {files && files.length > 0 && (
+              <Typography variant="body2" color="text.secondary" mt={1}>
+                {files.length} archivo(s) seleccionado(s)
+              </Typography>
+            )}
+          </Box>
           <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
             <TextField
               label="Correo electrónico"
@@ -178,51 +271,6 @@ export default function NewReportPage() {
             required
             fullWidth
           />
-          <TextField
-            label="Descripción"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            multiline
-            minRows={4}
-            required
-            fullWidth
-          />
-          <Grid container spacing={2}>
-            <Grid item xs={12} md={6}>
-              <TextField
-                label="Latitud"
-                type="number"
-                value={latitude}
-                onChange={(e) => setLatitude(e.target.value)}
-                fullWidth
-                required
-              />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <TextField
-                label="Longitud"
-                type="number"
-                value={longitude}
-                onChange={(e) => setLongitude(e.target.value)}
-                fullWidth
-                required
-              />
-            </Grid>
-          </Grid>
-          <Button type="button" variant="text" onClick={handleUseCurrentLocation}>
-            Usar mi ubicación actual
-          </Button>
-          <Box>
-            <Button variant="outlined" component="label">
-              Seleccionar archivos
-              <input type="file" hidden multiple accept="image/*,video/*" onChange={handleFileChange} />
-            </Button>
-            {files && files.length > 0 && (
-              <Typography variant="body2" color="text.secondary" mt={1}>
-                {files.length} archivo(s) seleccionado(s)
-              </Typography>
-            )}
-          </Box>
           {error && <Alert severity="error">{error}</Alert>}
           <Button type="submit" variant="contained" disabled={submitting}>
             {submitting ? "Enviando..." : "Crear reporte"}
