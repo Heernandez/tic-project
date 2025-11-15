@@ -124,3 +124,29 @@ class EmailOTP(Base):
         default=datetime.utcnow,
         nullable=False,
     )
+
+class SystemUser(Base):
+    """
+    Usuarios del sistema (operarios / admins).
+    Maneja:
+      - username
+      - password_hash
+      - last_login_at (última sesión)
+      - session_token (idSesion)
+      - session_expires_at (TTL de la sesión)
+    """
+    __tablename__ = "system_users"
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, nullable=False)
+    username = Column(String, unique=True, index=True, nullable=False)
+    password_hash = Column(String, nullable=False)
+
+    last_login_at = Column(DateTime, nullable=True)
+
+    # idSesion
+    session_token = Column(String, index=True, nullable=True)
+    session_expires_at = Column(DateTime, nullable=True)
+
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = Column(DateTime, default=datetime.utcnow, nullable=False)
