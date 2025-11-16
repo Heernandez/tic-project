@@ -1,5 +1,7 @@
 import { ChangeEvent, FormEvent, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
+import { MapContainer, Marker, TileLayer } from "react-leaflet";
+import { Icon } from "leaflet";
 import {
   Alert,
   Box,
@@ -20,6 +22,13 @@ import {
 } from "@mui/material";
 import { getToken } from "../auth";
 import type { Report, ReportComment, ReportStatus } from "../types";
+
+const markerIcon = new Icon({
+  iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
+  shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+});
 
 const statusLabels: Record<ReportStatus, string> = {
   nuevo: "Nuevo",
@@ -170,13 +179,7 @@ export default function ReportDetailPage() {
 
       <Paper sx={{ p: 3, mb: 3 }}>
         <Grid container spacing={2}>
-          <Grid item xs={12} md={6}>
-            <Typography variant="subtitle2" color="text.secondary">
-              Ciudadano
-            </Typography>
-            <Typography>{report.citizen_email || "N/D"}</Typography>
-          </Grid>
-          <Grid item xs={12} md={6}>
+          <Grid item xs={12}>
             <FormControl fullWidth size="small">
               <InputLabel>Estado</InputLabel>
               <Select
@@ -203,9 +206,21 @@ export default function ReportDetailPage() {
             <Typography variant="subtitle2" color="text.secondary">
               Ubicación
             </Typography>
-            <Typography>
-              Lat {report.latitude} / Lng {report.longitude}
-            </Typography>
+            <Box sx={{ mt: 2, height: 280, borderRadius: 2, overflow: "hidden" }}>
+              <MapContainer
+                center={[report.latitude, report.longitude]}
+                zoom={15}
+                style={{ height: "100%", width: "100%" }}
+                scrollWheelZoom={false}
+                doubleClickZoom={false}
+              >
+                <TileLayer
+                  attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+                  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                />
+                <Marker position={[report.latitude, report.longitude]} icon={markerIcon} />
+              </MapContainer>
+            </Box>
           </Grid>
         </Grid>
       </Paper>

@@ -2,11 +2,14 @@ import { ChangeEvent, FormEvent, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { MapContainer, TileLayer, Marker, useMapEvents, useMap } from "react-leaflet";
 import { Icon } from "leaflet";
+import { Link as RouterLink } from "react-router-dom";
+
 import {
   Alert,
   Box,
   Button,
   Container,
+  Link,
   Paper,
   Stack,
   TextField,
@@ -192,7 +195,11 @@ export default function NewReportPage() {
         Nuevo reporte
       </Typography>
       <Alert severity="info" sx={{ mb: 2 }}>
-        Antes de enviar un nuevo reporte, revisa la pestaña "Cerca de mí" para confirmar si alguien ya reportó el
+        Antes de enviar un nuevo reporte, revisa la pestaña {" "}
+        <Link component={RouterLink} to="/reportes/cercanos" underline="hover">
+              Cerca de mí
+        </Link>{" "} 
+        para confirmar si alguien ya reportó el
         mismo punto. Así evitamos duplicados y agilizamos la atención.
       </Alert>
       <Paper component="form" onSubmit={handleSubmit} sx={{ p: 4 }}>

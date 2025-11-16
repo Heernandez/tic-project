@@ -1,4 +1,5 @@
-import { Container, Paper, Stack, Typography, List, ListItem, ListItemText } from "@mui/material";
+import { Container, Paper, Stack, Typography, List, ListItem, ListItemText, Link } from "@mui/material";
+import { Link as RouterLink } from "react-router-dom";
 
 export default function HowItWorksPage() {
   const steps = [
@@ -39,8 +40,11 @@ export default function HowItWorksPage() {
             el modelo puede replicarse en otras ciudades.
           </Typography>
           <Typography color="text.secondary">
-            Antes de crear un nuevo reporte, puedes abrir la pestaña "Cerca de mí" para comprobar si ya existe uno
-            en la misma ubicación; así evitamos duplicados y facilitamos la gestión.
+            Antes de crear un nuevo reporte, puedes abrir la pestaña{" "}
+            <Link component={RouterLink} to="/reportes/cercanos" underline="hover">
+              Cerca de mí
+            </Link>{" "}
+            para comprobar si ya existe uno en la misma ubicación; así evitamos duplicados y facilitamos la gestión.
           </Typography>
           <Typography color="text.secondary">
             Sigue estos pasos sencillos para crear y consultar reportes:
