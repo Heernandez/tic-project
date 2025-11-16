@@ -24,6 +24,7 @@ function App() {
   const location = useLocation();
   const [session, setSession] = useState<SessionData | null>(getSession());
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [visitCount, setVisitCount] = useState<number | null>(null);
 
   useEffect(() => {
     const handleSessionChange = () => {
@@ -57,6 +58,44 @@ function App() {
     }
     return location.pathname === path;
   };
+
+  useEffect(() => {
+    const tokenKey = "visitor_token";
+    const generateToken = () => {
+      if (window.crypto?.randomUUID) return window.crypto.randomUUID();
+      return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
+    };
+
+    let token = localStorage.getItem(tokenKey);
+    if (!token) {
+      token = generateToken();
+      localStorage.setItem(tokenKey, token);
+    }
+
+    const registerVisit = async () => {
+      try {
+        await fetch("/api/analytics/visits", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ device_token: token }),
+        });
+      } catch (error) {
+        console.error("No se pudo registrar la visita", error);
+      }
+
+      try {
+        const res = await fetch("/api/analytics/visits/count");
+        if (res.ok) {
+          const data = await res.json();
+          setVisitCount(data.total);
+        }
+      } catch (error) {
+        console.error("No se pudo obtener el contador de visitas", error);
+      }
+    };
+
+    registerVisit();
+  }, []);
 
   return (
     <Box
@@ -207,6 +246,11 @@ function App() {
             PEREIRA" — Luis Hernández — 2025 ©
           </Typography>
         </Stack>
+        {visitCount !== null && (
+          <Typography variant="body2" textAlign="center" mt={1}>
+            Visitas registradas: {visitCount}
+          </Typography>
+        )}
       </Box>
     </Box>
   );

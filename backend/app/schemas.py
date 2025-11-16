@@ -83,3 +83,7 @@ class UserLoginResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"
     username: str
+
+
+class VisitorPing(BaseModel):
+    device_token: str
