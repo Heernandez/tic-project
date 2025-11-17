@@ -9,7 +9,11 @@ import {
   CardContent,
   Chip,
   CircularProgress,
+  FormControl,
   Grid,
+  InputLabel,
+  MenuItem,
+  Select,
   Stack,
   Typography,
 } from "@mui/material";
@@ -35,6 +39,7 @@ export default function ReportListPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [hasSession, setHasSession] = useState<boolean>(!!getSession());
+  const [statusFilter, setStatusFilter] = useState<ReportStatus | "all">("all");
 
   useEffect(() => {
     async function fetchReports() {
@@ -66,6 +71,12 @@ export default function ReportListPage() {
       window.removeEventListener("storage", handleSessionChange);
     };
   }, []);
+
+  useEffect(() => {
+    if (!hasSession) {
+      setStatusFilter("all");
+    }
+  }, [hasSession]);
 
   if (loading) {
     return (
@@ -104,48 +115,87 @@ export default function ReportListPage() {
     );
   }
 
+  const filteredReports =
+    statusFilter === "all"
+      ? reports
+      : reports.filter((report) => report.status === statusFilter);
+
   return (
     <Box>
-      <Typography variant="h5" component="h2" gutterBottom>
-        Listado de reportes
-      </Typography>
-      <Grid container spacing={2} justifyContent="center">
-        {reports.map((r) => (
-          <Grid item xs={12} md={6} key={r.public_id}>
-            <Card>
-              <CardContent>
-                <Stack direction="row" justifyContent="space-between" alignItems="center" mb={1}>
-                  <Typography variant="h6">Reporte #{r.id}</Typography>
-                  <Chip label={statusLabels[r.status]} color={statusColors[r.status]} size="small" />
-                </Stack>
-                <Typography variant="body2" color="text.secondary" mb={1}>
-                  {r.description.length > 140
-                    ? r.description.slice(0, 140) + "..."
-                    : r.description}
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  Lat: {r.latitude.toFixed(5)} | Lng: {r.longitude.toFixed(5)}
-                </Typography>
-              </CardContent>
-              <CardActions sx={{ justifyContent: "flex-end" }}>
-                <Button component={RouterLink} to={`/reportes/${r.public_id}`}>
-                  Ver detalle
-                </Button>
-                {hasSession && (
-                  <Button
-                    component={RouterLink}
-                    to={`/reportes/actualizacion/${r.public_id}`}
-                    variant="contained"
-                    size="small"
-                  >
-                    Agregar comentario
-                  </Button>
-                )}
-              </CardActions>
-            </Card>
-          </Grid>
-        ))}
-      </Grid>
+      <Stack
+        direction={{ xs: "column", md: "row" }}
+        spacing={2}
+        alignItems={{ xs: "flex-start", md: "center" }}
+        justifyContent="space-between"
+        mb={2}
+        mt={2}
+      >
+        <Typography variant="h5" component="h2">
+          Listado de reportes
+        </Typography>
+        {hasSession && (
+          <FormControl size="small" sx={{ mt: "20px" }}>
+            <InputLabel>Estado</InputLabel>
+            <Select
+              label="Estado"
+              value={statusFilter}
+              onChange={(event) => setStatusFilter(event.target.value as ReportStatus | "all")}
+            >
+              <MenuItem value="all">Todos</MenuItem>
+              {Object.entries(statusLabels).map(([value, label]) => (
+                <MenuItem key={value} value={value}>
+                  {label}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        )}
+      </Stack>
+      {filteredReports.length === 0 ? (
+        <Typography variant="body2" color="text.secondary">
+          No hay reportes para el estado seleccionado.
+        </Typography>
+      ) : (
+        <Grid container spacing={2} justifyContent="center">
+          {filteredReports.map((r) => (
+            <Grid item xs={12} md={6} key={r.public_id}>
+              <Card>
+                <CardContent>
+                  <Stack direction="row" justifyContent="space-between" alignItems="center" mb={1}>
+                    <Typography variant="h6">Reporte #{r.id}</Typography>
+                    <Chip label={statusLabels[r.status]} color={statusColors[r.status]} size="small" />
+                  </Stack>
+                  <Typography variant="body2" color="text.secondary" mb={1}>
+                    {r.description.length > 140
+                      ? r.description.slice(0, 140) + "..."
+                      : r.description}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Lat: {r.latitude.toFixed(5)} | Lng: {r.longitude.toFixed(5)}
+                  </Typography>
+                </CardContent>
+                <CardActions sx={{ justifyContent: "flex-end" }}>
+                  {!hasSession && (
+                    <Button component={RouterLink} to={`/reportes/${r.public_id}`}>
+                      Ver detalle
+                    </Button>
+                  )}
+                  {hasSession && (
+                    <Button
+                      component={RouterLink}
+                      to={`/reportes/actualizacion/${r.public_id}`}
+                      variant="contained"
+                      size="small"
+                    >
+                      Agregar comentario
+                    </Button>
+                  )}
+                </CardActions>
+              </Card>
+            </Grid>
+          ))}
+        </Grid>
+      )}
     </Box>
   );
 }

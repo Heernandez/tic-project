@@ -1,4 +1,5 @@
 ubicacion automatica
+
 boton solo para fallo
 
 mejorar la interfaz visual
@@ -6,13 +7,19 @@ mejorar la interfaz visual
 mejorar los mensajes de cambio de 
 
 cuando veo algo ya reportado,
+
 marcar con un contador para decir
+
 que yo tambien lo identifiqué
 
-
 pantalla explicativa al usuario
-
 
 ruta de los anuncios
 
 crud para crear anuncios con temporalidad de visibilidades
+
+
+1. add the way to delete pre-charged evidences if you commit a mistake selecting them
+2. integrate AI for try to find a match with another report 
+3. whatsapp channel for notify when a ticket is created
+4. 

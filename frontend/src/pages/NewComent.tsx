@@ -1,5 +1,7 @@
 import { ChangeEvent, FormEvent, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
+import { MapContainer, Marker, TileLayer } from "react-leaflet";
+import { Icon } from "leaflet";
 import {
   Alert,
   Box,
@@ -21,6 +23,13 @@ import {
 import { getToken } from "../auth";
 import type { Report, ReportComment, ReportStatus } from "../types";
 
+const markerIcon = new Icon({
+  iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
+  shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+});
+
 const statusLabels: Record<ReportStatus, string> = {
   nuevo: "Nuevo",
   en_progreso: "En progreso",
@@ -35,7 +44,7 @@ export default function ReportDetailPage() {
   const [error, setError] = useState<string | null>(null);
 
   const [content, setContent] = useState("");
-  const [evidences, setEvidences] = useState<FileList | null>(null);
+  const [evidences, setEvidences] = useState<File[]>([]);
   const [sendingComment, setSendingComment] = useState(false);
   const [updatingStatus, setUpdatingStatus] = useState(false);
 
@@ -94,7 +103,14 @@ export default function ReportDetailPage() {
   };
 
   const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
-    setEvidences(event.target.files);
+    if (!event.target.files) return;
+    const selected = Array.from(event.target.files);
+    setEvidences((prev) => [...prev, ...selected]);
+    event.target.value = "";
+  };
+
+  const handleRemoveEvidence = (index: number) => {
+    setEvidences((prev) => prev.filter((_, i) => i !== index));
   };
 
   const handleSubmitComment = async (e: FormEvent) => {
@@ -106,9 +122,7 @@ export default function ReportDetailPage() {
       const formData = new FormData();
       formData.append("content", content.trim());
 
-      if (evidences) {
-        Array.from(evidences).forEach((file) => formData.append("evidences", file));
-      }
+      evidences.forEach((file) => formData.append("evidences", file));
 
       const token = getToken();
       const headers: HeadersInit = {};
@@ -138,7 +152,7 @@ export default function ReportDetailPage() {
           : prev
       );
       setContent("");
-      setEvidences(null);
+      setEvidences([]);
     } catch (err: any) {
       setError(err.message || "Error al enviar comentario");
     } finally {
@@ -170,13 +184,7 @@ export default function ReportDetailPage() {
 
       <Paper sx={{ p: 3, mb: 3 }}>
         <Grid container spacing={2}>
-          <Grid item xs={12} md={6}>
-            <Typography variant="subtitle2" color="text.secondary">
-              Ciudadano
-            </Typography>
-            <Typography>{report.citizen_email || "N/D"}</Typography>
-          </Grid>
-          <Grid item xs={12} md={6}>
+          <Grid item xs={12}>
             <FormControl fullWidth size="small">
               <InputLabel>Estado</InputLabel>
               <Select
@@ -203,9 +211,21 @@ export default function ReportDetailPage() {
             <Typography variant="subtitle2" color="text.secondary">
               Ubicación
             </Typography>
-            <Typography>
-              Lat {report.latitude} / Lng {report.longitude}
-            </Typography>
+            <Box sx={{ mt: 2, height: 280, borderRadius: 2, overflow: "hidden" }}>
+              <MapContainer
+                center={[report.latitude, report.longitude]}
+                zoom={15}
+                style={{ height: "100%", width: "100%" }}
+                scrollWheelZoom={false}
+                doubleClickZoom={false}
+              >
+                <TileLayer
+                  attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+                  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                />
+                <Marker position={[report.latitude, report.longitude]} icon={markerIcon} />
+              </MapContainer>
+            </Box>
           </Grid>
         </Grid>
       </Paper>
@@ -304,14 +324,35 @@ export default function ReportDetailPage() {
               onChange={(e) => setContent(e.target.value)}
               required
             />
+            <Typography variant="body2" color="text.secondary">
+              Si aplica, adjunta fotos o videos que muestren el avance o la solución del problema.
+            </Typography>
             <Button variant="outlined" component="label">
               Adjuntar evidencias
               <input type="file" hidden multiple accept="image/*,video/*" onChange={handleFileChange} />
             </Button>
-            {evidences && evidences.length > 0 && (
-              <Typography variant="body2" color="text.secondary">
-                {evidences.length} archivo(s) seleccionado(s)
-              </Typography>
+            {evidences.length > 0 && (
+              <Stack spacing={1}>
+                <Typography variant="body2" color="text.secondary">
+                  Archivos seleccionados:
+                </Typography>
+                {evidences.map((file, idx) => (
+                  <Stack
+                    key={`${file.name}-${idx}`}
+                    direction="row"
+                    alignItems="center"
+                    justifyContent="space-between"
+                    sx={{ border: "1px solid #ddd", borderRadius: 1, p: 1 }}
+                  >
+                    <Typography variant="body2" sx={{ mr: 2 }}>
+                      {file.name}
+                    </Typography>
+                    <Button size="small" color="error" onClick={() => handleRemoveEvidence(idx)}>
+                      Quitar
+                    </Button>
+                  </Stack>
+                ))}
+              </Stack>
             )}
             {error && <Alert severity="error">{error}</Alert>}
             <Button type="submit" variant="contained" disabled={sendingComment}>

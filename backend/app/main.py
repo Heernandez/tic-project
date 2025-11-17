@@ -6,7 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from .db import Base, engine
 from . import models
-from .api import reports,auth 
+from .api import reports,auth, analytics 
 
 from dotenv import load_dotenv  # 👈 nuevo
 # 👇 Cargar variables del archivo .env (busca hacia arriba hasta encontrarlo)
@@ -35,6 +35,7 @@ app.add_middleware(
 # Rutas
 app.include_router(auth.router, prefix="/api")     # 👈 /api/auth/...
 app.include_router(reports.router, prefix="/api")
+app.include_router(analytics.router, prefix="/api")
 
 # ---- Servir media de ciudadanos ----
 MEDIA_DIR = Path(__file__).resolve().parent / "media"

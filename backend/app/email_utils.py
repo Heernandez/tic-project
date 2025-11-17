@@ -9,6 +9,15 @@ from typing import Optional
 from . import models
 
 
+def _get_sender_address(default_user: str) -> str:
+    """
+    Permite forzar un remitente específico (p. ej. reportes@ciudadanos.com)
+    usando la variable opcional GMAIL_SENDER. Si no se define, se usa el mismo
+    usuario con el que autenticamos el SMTP.
+    """
+    return os.getenv("GMAIL_SENDER") or default_user
+
+
 def send_otp_email(to_email: str, otp_code: str) -> None:
     smtp_user = os.getenv("GMAIL_USER")
     smtp_pass = os.getenv("GMAIL_APP_PASSWORD")
@@ -18,7 +27,7 @@ def send_otp_email(to_email: str, otp_code: str) -> None:
 
     msg = EmailMessage()
     msg["Subject"] = "Código de verificación para tu reporte"
-    msg["From"] = smtp_user
+    msg["From"] = _get_sender_address(smtp_user)
     msg["To"] = to_email
 
     msg.set_content(
@@ -48,7 +57,7 @@ def send_status_change_email(
 
     msg = EmailMessage()
     msg["Subject"] = f"Actualización del reporte #{report.id}"
-    msg["From"] = smtp_user
+    msg["From"] = _get_sender_address(smtp_user)
     msg["To"] = to_email
 
     msg.set_content(
@@ -80,7 +89,7 @@ def send_comment_notification_email(
 
     msg = EmailMessage()
     msg["Subject"] = f"Nuevo comentario en tu reporte #{report.id}"
-    msg["From"] = smtp_user
+    msg["From"] = _get_sender_address(smtp_user)
     msg["To"] = to_email
 
     msg.set_content(
