@@ -36,6 +36,24 @@ export interface Report {
   comments: ReportComment[];
 }
 
+export interface NewsMedia {
+  id: number;
+  file_name: string;
+  media_type: string;
+  order: number;
+}
+
+export interface News {
+  id: number;
+  title: string;
+  description?: string | null;
+  start_date?: string | null;
+  end_date?: string | null;
+  created_at: string;
+  updated_at: string;
+  media: NewsMedia[];
+}
+
 export interface LoginResponse {
   access_token: string;
   token_type: string; // "bearer"

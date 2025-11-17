@@ -1,9 +1,6 @@
 # backend/app/models.py
 from datetime import datetime
 from enum import Enum
-from sqlalchemy.orm import relationship
-
-
 from sqlalchemy import (
     Column,
     Integer,
@@ -159,3 +156,29 @@ class Visitor(Base):
     device_token = Column(String, unique=True, index=True, nullable=False)
     first_seen_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     last_seen_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+
+
+class News(Base):
+    __tablename__ = "news"
+
+    id = Column(Integer, primary_key=True, index=True)
+    title = Column(String, nullable=False)
+    description = Column(Text, nullable=True)
+    start_date = Column(DateTime, nullable=True)
+    end_date = Column(DateTime, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+
+    media = relationship("NewsMedia", back_populates="news", cascade="all, delete-orphan")
+
+
+class NewsMedia(Base):
+    __tablename__ = "news_media"
+
+    id = Column(Integer, primary_key=True, index=True)
+    news_id = Column(Integer, ForeignKey("news.id", ondelete="CASCADE"), nullable=False)
+    file_name = Column(String, nullable=False)
+    media_type = Column(String, nullable=False, default="image")
+    order = Column(Integer, nullable=False, default=1)
+
+    news = relationship("News", back_populates="media")

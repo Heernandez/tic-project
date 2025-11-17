@@ -7,6 +7,8 @@ import NewComent from "./pages/NewComent";
 import LoginPage from "./pages/LoginPage";
 import NearbyReportsPage from "./pages/NearbyReportsPage";
 import NewsPage from "./pages/NewsPage";
+import NewsCreatePage from "./pages/NewsCreatePage";
+import NewsEditPage from "./pages/NewsEditPage";
 import HowItWorksPage from "./pages/HowItWorksPage";
 import { clearSession, getSession, type SessionData } from "./auth";
 import AppBar from "@mui/material/AppBar";
@@ -220,6 +222,8 @@ function App() {
           <Route path="/reportes/cercanos" element={<NearbyReportsPage />} />
           <Route path="/como-funciona" element={<HowItWorksPage />} />
           <Route path="/noticias" element={<NewsPage />} />
+          <Route path="/noticias/nueva" element={<NewsCreatePage />} />
+          <Route path="/noticias/:newsId/editar" element={<NewsEditPage />} />
           <Route path="/login" element={<LoginPage />} />
         </Routes>
       </Box>

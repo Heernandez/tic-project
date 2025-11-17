@@ -5,9 +5,6 @@ from typing import List, Optional
 from .models import ReportStatus
 
 
-from .models import ReportStatus
-
-
 class ReportMediaOut(BaseModel):
     id: int
     file_name: str
@@ -87,3 +84,27 @@ class UserLoginResponse(BaseModel):
 
 class VisitorPing(BaseModel):
     device_token: str
+
+
+class NewsMediaOut(BaseModel):
+    id: int
+    file_name: str
+    media_type: str
+    order: int
+
+    class Config:
+        orm_mode = True
+
+
+class NewsOut(BaseModel):
+    id: int
+    title: str
+    description: Optional[str] = None
+    start_date: Optional[datetime] = None
+    end_date: Optional[datetime] = None
+    created_at: datetime
+    updated_at: datetime
+    media: List[NewsMediaOut] = Field(default_factory=list)
+
+    class Config:
+        orm_mode = True
