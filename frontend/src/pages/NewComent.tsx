@@ -44,7 +44,7 @@ export default function ReportDetailPage() {
   const [error, setError] = useState<string | null>(null);
 
   const [content, setContent] = useState("");
-  const [evidences, setEvidences] = useState<FileList | null>(null);
+  const [evidences, setEvidences] = useState<File[]>([]);
   const [sendingComment, setSendingComment] = useState(false);
   const [updatingStatus, setUpdatingStatus] = useState(false);
 
@@ -103,7 +103,14 @@ export default function ReportDetailPage() {
   };
 
   const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
-    setEvidences(event.target.files);
+    if (!event.target.files) return;
+    const selected = Array.from(event.target.files);
+    setEvidences((prev) => [...prev, ...selected]);
+    event.target.value = "";
+  };
+
+  const handleRemoveEvidence = (index: number) => {
+    setEvidences((prev) => prev.filter((_, i) => i !== index));
   };
 
   const handleSubmitComment = async (e: FormEvent) => {
@@ -115,9 +122,7 @@ export default function ReportDetailPage() {
       const formData = new FormData();
       formData.append("content", content.trim());
 
-      if (evidences) {
-        Array.from(evidences).forEach((file) => formData.append("evidences", file));
-      }
+      evidences.forEach((file) => formData.append("evidences", file));
 
       const token = getToken();
       const headers: HeadersInit = {};
@@ -147,7 +152,7 @@ export default function ReportDetailPage() {
           : prev
       );
       setContent("");
-      setEvidences(null);
+      setEvidences([]);
     } catch (err: any) {
       setError(err.message || "Error al enviar comentario");
     } finally {
@@ -319,14 +324,35 @@ export default function ReportDetailPage() {
               onChange={(e) => setContent(e.target.value)}
               required
             />
+            <Typography variant="body2" color="text.secondary">
+              Si aplica, adjunta fotos o videos que muestren el avance o la solución del problema.
+            </Typography>
             <Button variant="outlined" component="label">
               Adjuntar evidencias
               <input type="file" hidden multiple accept="image/*,video/*" onChange={handleFileChange} />
             </Button>
-            {evidences && evidences.length > 0 && (
-              <Typography variant="body2" color="text.secondary">
-                {evidences.length} archivo(s) seleccionado(s)
-              </Typography>
+            {evidences.length > 0 && (
+              <Stack spacing={1}>
+                <Typography variant="body2" color="text.secondary">
+                  Archivos seleccionados:
+                </Typography>
+                {evidences.map((file, idx) => (
+                  <Stack
+                    key={`${file.name}-${idx}`}
+                    direction="row"
+                    alignItems="center"
+                    justifyContent="space-between"
+                    sx={{ border: "1px solid #ddd", borderRadius: 1, p: 1 }}
+                  >
+                    <Typography variant="body2" sx={{ mr: 2 }}>
+                      {file.name}
+                    </Typography>
+                    <Button size="small" color="error" onClick={() => handleRemoveEvidence(idx)}>
+                      Quitar
+                    </Button>
+                  </Stack>
+                ))}
+              </Stack>
             )}
             {error && <Alert severity="error">{error}</Alert>}
             <Button type="submit" variant="contained" disabled={sendingComment}>

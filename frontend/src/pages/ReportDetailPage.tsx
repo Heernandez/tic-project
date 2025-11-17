@@ -46,7 +46,7 @@ export default function ReportDetailPage() {
   if (!report) return <p>No se encontró el reporte.</p>;
 
   return (
-    <div>
+    <div style={{ marginTop: "64px" }}>
       <h2>Reporte #{report.id}</h2>
       <p>
         <strong>Estado: </strong>{report.status}

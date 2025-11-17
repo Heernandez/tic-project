@@ -17,3 +17,7 @@ pantalla explicativa al usuario
 ruta de los anuncios
 
 crud para crear anuncios con temporalidad de visibilidades
+
+
+1. add the way to delete pre-charged evidences if you commit a mistake selecting them
+2. integrate AI for try to find a match with another report 

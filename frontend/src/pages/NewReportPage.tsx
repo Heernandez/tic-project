@@ -10,6 +10,7 @@ import {
   Button,
   Container,
   Link,
+  LinearProgress,
   Paper,
   Stack,
   TextField,
@@ -49,6 +50,14 @@ function MapCenterUpdater({ lat, lng }: { lat?: number; lng?: number }) {
   return null;
 }
 
+const OTP_COOLDOWN_SECONDS = 180;
+
+const formatCooldownTime = (seconds: number) => {
+  const minutes = Math.floor(seconds / 60);
+  const secs = seconds % 60;
+  return `${minutes}:${secs.toString().padStart(2, "0")}`;
+};
+
 export default function NewReportPage() {
   const navigate = useNavigate();
 
@@ -64,6 +73,7 @@ export default function NewReportPage() {
 
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [otpCooldown, setOtpCooldown] = useState(0);
 
   useEffect(() => {
     const geoTimeout = setTimeout(() => {
@@ -92,12 +102,26 @@ export default function NewReportPage() {
     );
   };
 
+  const isValidEmail = (value: string) => /\S+@\S+\.\S+/.test(value);
+
   const handleSendCode = async () => {
     setError(null);
     setCodeMessage(null);
 
     if (!email.trim()) {
       setError("Debes ingresar un correo válido.");
+      return;
+    }
+    if (!isValidEmail(email.trim())) {
+      setError("Ingresa un correo con formato válido.");
+      return;
+    }
+    if (!description.trim()) {
+      setError("Describe el problema antes de solicitar el código.");
+      return;
+    }
+    if (!latitude || !longitude) {
+      setError("Selecciona la ubicación antes de solicitar el código.");
       return;
     }
 
@@ -116,12 +140,29 @@ export default function NewReportPage() {
       }
 
       setCodeMessage("Código enviado. Revisa tu correo (tiene validez de 3 minutos).");
+      setOtpCooldown(OTP_COOLDOWN_SECONDS);
     } catch (err: any) {
       setError(err.message || "Error enviando el código.");
     } finally {
       setSendingCode(false);
     }
   };
+
+  useEffect(() => {
+    if (!otpCooldown) return;
+
+    const interval = setInterval(() => {
+      setOtpCooldown((prev) => {
+        if (prev <= 1) {
+          clearInterval(interval);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [otpCooldown]);
 
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files) return;
@@ -204,7 +245,11 @@ export default function NewReportPage() {
       </Alert>
       <Paper component="form" onSubmit={handleSubmit} sx={{ p: 4 }}>
         <Stack spacing={3}>
-          <TextField
+          <Stack spacing={1}>
+            <Typography variant="body2" color="text.secondary">
+              Describe claramente el problema y cualquier detalle que ayude a ubicarlo.
+            </Typography>
+            <TextField
             label="Descripción"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
@@ -213,7 +258,12 @@ export default function NewReportPage() {
             required
             fullWidth
           />
-          <Box sx={{ height: 320, borderRadius: 2, overflow: "hidden" }}>
+          </Stack>
+          <Box>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+              Elige la ubicación exacta en el mapa.
+            </Typography>
+            <Box sx={{ height: 320, borderRadius: 2, overflow: "hidden" }}>
             <MapContainer
               center={
                 latitude && longitude
@@ -246,12 +296,16 @@ export default function NewReportPage() {
               />
             </MapContainer>
           </Box>
+          </Box>
           <Button type="button" variant="text" onClick={handleUseCurrentLocation}>
             Usar mi ubicación actual
           </Button>
-          <Box>
+          <Box sx={{ mt: "20px" }}>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+              Puedes adjuntar fotos y/o videos que evidencien el problema.
+            </Typography>
             <Button variant="outlined" component="label">
-              Seleccionar archivos
+              Adjuntar evidencias
               <input type="file" hidden multiple accept="image/*,video/*" onChange={handleFileChange} />
             </Button>
             {files.length > 0 && (
@@ -279,23 +333,42 @@ export default function NewReportPage() {
             )}
           </Box>
           <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: { xs: 1, sm: 0 } }}>
+              Necesitamos tu correo para enviarte un código temporal y validar que el reporte es auténtico.
+            </Typography>
             <TextField
               label="Correo electrónico"
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               fullWidth
+              error={!!email && !isValidEmail(email)}
+              helperText={email && !isValidEmail(email) ? "Formato no válido" : undefined}
               required
             />
-            <Button
-              type="button"
-              variant="outlined"
-              onClick={handleSendCode}
-              disabled={sendingCode}
-              sx={{ minWidth: 160 }}
-            >
-              {sendingCode ? "Enviando..." : "Enviar código"}
-            </Button>
+            <Stack spacing={1} alignItems="flex-start">
+              <Button
+                type="button"
+                variant="outlined"
+                onClick={handleSendCode}
+                disabled={sendingCode || otpCooldown > 0}
+                sx={{ minWidth: 160 }}
+              >
+                {sendingCode ? "Enviando..." : otpCooldown > 0 ? "Reintentar" : "Enviar código"}
+              </Button>
+              {otpCooldown > 0 && (
+                <>
+                  <Typography variant="caption" color="text.secondary">
+                    Podrás reenviar en {formatCooldownTime(otpCooldown)}.
+                  </Typography>
+                  <LinearProgress
+                    variant="determinate"
+                    value={((OTP_COOLDOWN_SECONDS - otpCooldown) / OTP_COOLDOWN_SECONDS) * 100}
+                    sx={{ width: "100%", minWidth: 160 }}
+                  />
+                </>
+              )}
+            </Stack>
           </Stack>
           {codeMessage && <Alert severity="success">{codeMessage}</Alert>}
           <TextField
