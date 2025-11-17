@@ -164,6 +164,12 @@ export default function NewReportPage() {
     return () => clearInterval(interval);
   }, [otpCooldown]);
 
+  useEffect(() => {
+    if (otpCooldown === 0) {
+      setCodeMessage(null);
+    }
+  }, [otpCooldown]);
+
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files) return;
     const selected = Array.from(e.target.files);
